@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaViSolution | Engineering High-Performance Platforms</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Precise Navigation Blueprint Replication -->
+    <nav class="navbar">
+        <div class="logo-group">
+            <span class="m-box">M</span>
+            <span class="brand-text">MaVi</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="active" onclick="showSection('hero-view')">HOME</a></li>
+            <li><a href="#">ABOUT</a></li>
+            <li><a href="#" onclick="showSection('hero-view')">SERVICES</a></li>
+            <li><a href="#">CASE STUDIES</a></li>
+            <li id="authActionSlot"><button class="btn-contact-green" onclick="openAuthModal('login')">CONTACT / LOGIN</button></li>
+        </ul>
+    </nav>
+
+    <!-- Main View Section Nodes Container -->
+    <main class="viewport-wrapper">
+        
+        <!-- View 1: Complete Web Site Text & Hero Image Layout Replication -->
+        <section id="hero-view" class="content-section active">
+            <div class="hero-container">
+                <div class="badge-row">
+                    <span class="live-dot"></span> RELIABILITY PROTOCOLS ACTIVE
+                </div>
+                <h1>We help startups and businesses achieve <span class="cyan-text">99.99% uptime</span> with our SRE managed services.</h1>
+                <p class="sub-description">
+                    Maxi Vision bridges the gap between <strong class="light-text">Web Development</strong> and <strong class="light-text">Site Reliability</strong>. We don't just build websites; we engineer high-performance platforms that are: <span class="blue-link">Ultra-Fast</span>, <span class="blue-link">Secure</span>, and <span class="green-link">Scalable</span>.
+                </p>
+            </div>
+            
+            <!-- Dynamic Services Display Container View -->
+            <div class="live-services-wrapper">
+                <h2>Active Engineering Capabilities Portfolio</h2>
+                <div id="publicGrid" class="cards-grid"></div>
+            </div>
+        </section>
+
+        <!-- View 2: Advanced Dashboard Workspace Console Layout (CRUD Area) -->
+        <section id="dashboard-view" class="content-section container">
+            <div class="dash-heading">
+                <h2>Cluster Configuration Management Console</h2>
+                <button class="btn-disconnect" onclick="logoutSession()">Terminate Session</button>
+            </div>
+            <div class="workspace-grid">
+                <form id="serviceForm" class="control-form">
+                    <h3>Deploy / Edit Target Node Map</h3>
+                    <input type="hidden" id="serviceId">
+                    <input type="text" id="title" placeholder="Service Label" required>
+                    <input type="text" id="category" placeholder="Branch Domain (SRE/DevOps)" required>
+                    <textarea id="description" placeholder="Technical Architecture Description..." required></textarea>
+                    <input type="number" id="slaPercentage" placeholder="Target SLA Parameter" step="0.01" max="100" required>
+                    <button type="submit" id="formSubmitBtn" class="btn-action-primary">Commit Target Profile</button>
+                </form>
+                
+                <div class="table-container">
+                    <h3>Active Environment Registries</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Service Title</th>
+                                <th>SLA Target</th>
+                                <th>Control</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Combined Authentication Modal Popup Layer -->
+    <div id="authModal" class="modal-backdrop">
+        <div class="modal-window">
+            <div class="tabs-header">
+                <button id="loginTabBtn" class="tab-btn active" onclick="toggleAuthForm('login')">Sign In</button>
+                <button id="signupTabBtn" class="tab-btn" onclick="toggleAuthForm('signup')">Register Operator</button>
+            </div>
+            
+            <!-- Login Form Node -->
+            <form id="loginForm" class="auth-form-node active">
+                <input type="email" id="loginEmail" placeholder="Operator Email" required>
+                <input type="password" id="loginPassword" placeholder="Security Token Passkey" required>
+                <button type="submit" class="btn-action-primary">Request Access Verification</button>
+            </form>
+
+            <!-- Signup Form Node -->
+            <form id="signupForm" class="auth-form-node">
+                <input type="text" id="signupName" placeholder="Full Professional Name" required>
+                <input type="email" id="signupEmail" placeholder="Corporate Assignment Email" required>
+                <input type="password" id="signupPassword" placeholder="Generate Secure Passkey" required>
+                <button type="submit" class="btn-action-primary">Provision Identity Node</button>
+            </form>
+            
+            <button class="btn-close-modal" onclick="closeAuthModal()">Abort Interaction</button>
+            <div id="authFeedback" class="status-error"></div>
+        </div>
+    </div>
+
+    <!-- Application Script Implementation Logic Module -->
+    <script>
+        const API_ROOT = "http://localhost:8080/MaViSolutionProject/api"; // Matches Eclipse Root Context Target Name
+        let activeSessionToken = localStorage.getItem("mavi_token") || null;
+
+        function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'hero-view') loadPublicGrid();
+            if(id === 'dashboard-view') loadAdminTable();
+        }
+
+        // Modal Presentation Management Engine
+        function openAuthModal(mode) {
+            document.getElementById("authModal").classList.add("visible");
+            toggleAuthForm(mode);
+        }
+        function closeAuthModal() {
+            document.getElementById("authModal").classList.remove("visible");
+            document.getElementById("authFeedback").innerText = "";
+        }
+        function toggleAuthForm(mode) {
+            document.querySelectorAll('.auth-form-node, .tab-btn').forEach(n => n.classList.remove('active'));
+            if(mode === 'login') {
+                document.getElementById("loginForm").classList.add("active");
+                document.getElementById("loginTabBtn").classList.add("active");
+            } else {
+                document.getElementById("signupForm").classList.add("active");
+                document.getElementById("signupTabBtn").classList.add("active");
+            }
+        }
+
+        // Authentication API Subsystem Wireframe
+        document.getElementById("signupForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const res = await fetch(`${API_ROOT}/auth/signup`, {
+                method: "POST",
+                body: JSON.stringify({
+                    name: document.getElementById("signupName").value,
+                    email: document.getElementById("signupEmail").value,
+                    password: document.getElementById("signupPassword").value
+                })
+            });
+            const data = await res.json();
+            if(data.success) { alert("Registration Complete. Please login."); toggleAuthForm('login'); }
+            else document.getElementById("authFeedback").innerText = data.message;
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const res = await fetch(`${API_ROOT}/auth/login`, {
+                method: "POST",
+                body: JSON.stringify({
+                    email: document.getElementById("loginEmail").value,
+                    password: document.getElementById("loginPassword").value
+                })
+            });
+            if(res.ok) {
+                const data = await res.json();
+                activeSessionToken = data.token;
+                localStorage.setItem("mavi_token", data.token);
+                closeAuthModal();
+                syncNavbarState();
+                showSection('dashboard-view');
+            } else {
+                const data = await res.json();
+                document.getElementById("authFeedback").innerText = data.message;
+            }
+        });
+
+        function logoutSession() {
+            activeSessionToken = null;
+            localStorage.removeItem("mavi_token");
+            syncNavbarState();
+            showSection('hero-view');
+        }
+
+        function syncNavbarState() {
+            const slot = document.getElementById("authActionSlot");
+            if(activeSessionToken) {
+                slot.innerHTML = `<button class="btn-contact-green" style="background:#00f0ff; color:#000;" onclick="showSection('dashboard-view')">WORKSPACE</button>`;
+            } else {
+                slot.innerHTML = `<button class="btn-contact-green" onclick="openAuthModal('login')">CONTACT / LOGIN</button>`;
+            }
+        }
+
+        // Services Core CRUD Database Implementation Engine
+        async function loadPublicGrid() {
+            const res = await fetch(`${API_ROOT}/services`);
+            const data = await res.json();
+            document.getElementById("publicGrid").innerHTML = data.map(s => `
+                <div class="mavi-card">
+                    <span class="card-category">${s.category.toUpperCase()}</span>
+                    <h3>${s.title}</h3>
+                    <p>${s.description}</p>
+                    <div class="card-sla">Target Operational SLA: ${s.slaPercentage}%</div>
+                </div>
+            `).join("");
+        }
+
+        async function loadAdminTable() {
+            const res = await fetch(`${API_ROOT}/services`);
+            const data = await res.json();
+            document.getElementById("adminTableBody").innerHTML = data.map(s => `
+                <tr>
+                    <td><span class="table-badge">${s.category}</span></td>
+                    <td><strong>${s.title}</strong></td>
+                    <td style="color:#39ff14">${s.slaPercentage}%</td>
+                    <td>
+                        <button class="btn-tbl-edit" onclick="setupEdit(${s.id},'${s.title}','${s.category}','${s.description.replace(/'/g, "\\'")}',${s.slaPercentage})">Edit</button>
+                        <button class="btn-tbl-del" onclick="deleteNode(${s.id})">Tear Down</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        document.getElementById("serviceForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("serviceId").value;
+            const payload = {
+                title: document.getElementById("title").value,
+                category: document.getElementById("category").value,
+                description: document.getElementById("description").value,
+                slaPercentage: parseFloat(document.getElementById("slaPercentage").value)
+            };
+            const url = id ? `${API_ROOT}/services/${id}` : `${API_ROOT}/services`;
+            const method = id ? "PUT" : "POST";
+
+            await fetch(url, { method: method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            document.getElementById("serviceForm").reset();
+            document.getElementById("serviceId").value = "";
+            document.getElementById("formSubmitBtn").innerText = "Commit Target Profile";
+            loadAdminTable();
+        });
+
+        function setupEdit(id, title, category, desc, sla) {
+            document.getElementById("serviceId").value = id;
+            document.getElementById("title").value = title;
+            document.getElementById("category").value = category;
+            document.getElementById("description").value = desc;
+            document.getElementById("slaPercentage").value = sla;
+            document.getElementById("formSubmitBtn").innerText = "Apply Target Node Alteration";
+        }
+
+        async function deleteNode(id) {
+            if(confirm("Confirm standard decommissioning of this profile?")) {
+                await fetch(`${API_ROOT}/services/${id}`, { method: "DELETE" });
+                loadAdminTable();
+            }
+        }
+
+        // Initialize Engine Startup Check
+        syncNavbarState();
+        showSection(activeSessionToken ? 'dashboard-view' : 'hero-view');
+    </script>
+</body>
+</html>
